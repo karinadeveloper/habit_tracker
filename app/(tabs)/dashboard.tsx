@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { AppHeader } from '../../components/AppHeader';
 import { DailyBars } from '../../components/DailyBars';
 import { MonthSelector } from '../../components/MonthSelector';
 import { ProgressRing } from '../../components/ProgressRing';
@@ -25,6 +26,7 @@ export default function Dashboard() {
   return (
     <Screen>
       <ScrollView className="flex-1 pt-14 px-4">
+        <AppHeader title="Progreso" />
         <MonthSelector
           year={year}
           month={month}

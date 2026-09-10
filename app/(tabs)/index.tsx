@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, Text, View } from 'react-native';
+import { AppHeader } from '../../components/AppHeader';
 import { MonthGrid } from '../../components/MonthGrid';
 import { MonthSelector } from '../../components/MonthSelector';
 import { Screen } from '../../components/Screen';
@@ -68,6 +69,7 @@ export default function Home() {
   return (
     <Screen>
       <View className="flex-1 pt-14 px-4">
+        <AppHeader title="Inicio" />
         <MonthSelector year={year} month={month} onChange={cambiarMes} />
         {loading || loadingChecks ? (
           <ActivityIndicator color="#7C93C3" className="mt-8" />

@@ -60,4 +60,4 @@ $$;
 -- <<< REPLACE THIS UUID with the real demo user's id (auth.users.id)
 --     before running -- the placeholder below will fail with a
 --     foreign key violation since no such user exists. >>>
-select public.seed_demo_data('00000000-0000-0000-0000-000000000000');
+select public.seed_demo_data('56cb7e00-f166-434f-9103-581a90abedb8');

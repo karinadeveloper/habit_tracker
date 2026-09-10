@@ -23,7 +23,7 @@ create table if not exists public.demo_accounts (
 --     before running -- the placeholder below will fail with a
 --     foreign key violation since no such user exists. >>>
 insert into public.demo_accounts (user_id)
-values ('00000000-0000-0000-0000-000000000000')
+values ('56cb7e00-f166-434f-9103-581a90abedb8')
 on conflict (user_id) do nothing;
 
 -- ---------- Trigger: cap items per demo account ----------

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { AppHeader } from '../../components/AppHeader';
 import { Screen } from '../../components/Screen';
 import { useAuth } from '../../hooks/useAuth';
 import { useItems } from '../../hooks/useItems';
@@ -15,7 +16,7 @@ const TIPOS: { key: ItemType; label: string }[] = [
 ];
 
 export default function Temas() {
-  const { session, signOut } = useAuth();
+  const { session } = useAuth();
   const userId = session?.user.id;
   const { items, loading, addItem, deleteItem } = useItems(userId);
 
@@ -36,12 +37,7 @@ export default function Temas() {
   return (
     <Screen>
       <View className="flex-1 pt-14 px-4">
-        <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-xl font-bold text-white">Mis temas</Text>
-          <Pressable onPress={signOut}>
-            <Text className="text-white/70 text-xs">Salir</Text>
-          </Pressable>
-        </View>
+        <AppHeader title="Mis temas" />
 
         <View className="flex-row mb-4">
           {(Object.keys(BACKGROUNDS) as BackgroundKey[]).map((k) => (
