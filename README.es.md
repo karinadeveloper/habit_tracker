@@ -18,13 +18,13 @@ real, y desarrollo multiplataforma con React Native.
 
 ## Pruébalo
 
-**Demo en vivo (web):** [habit-tracker-demo.vercel.app](https://habit-tracker-demo.vercel.app)
+**Demo en vivo (web):** [habit-tracker-demo.vercel.app](https://habit-tracker-alpha-ten-48.vercel.app/)
 
 **Credenciales de acceso:**
 
 | Correo | Contraseña |
 |---|---|
-| `demo@habittracker.app` | `Demo2026!` |
+| `demo@demo.com` | `demo2026` |
 
 Algunas cosas que conviene saber antes de explorar:
 

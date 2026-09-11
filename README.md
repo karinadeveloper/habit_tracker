@@ -16,13 +16,13 @@ architecture, real-time sync, and cross-platform React Native development.
 
 ## Try it
 
-**Live demo (web):** [habit-tracker-demo.vercel.app](https://habit-tracker-demo.vercel.app)
+**Live demo (web):** [habit-tracker-demo.vercel.app](https://habit-tracker-alpha-ten-48.vercel.app/)
 
 **Login credentials:**
 
 | Email | Password |
 |---|---|
-| `demo@habittracker.app` | `Demo2026!` |
+| `demo@demo.com` | `demo2026` |
 
 A few things to know before you click around:
 
