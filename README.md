@@ -1,50 +1,161 @@
-# Welcome to your Expo app 👋
+# Habit Tracker — study progress tracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Expo SDK](https://img.shields.io/badge/Expo-54-000020?logo=expo&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Postgres-3ECF8E?logo=supabase&logoColor=white)
 
-## Get started
+A **local-first study habit tracker** for books, courses, and topics you're
+learning. Log your daily progress on a spreadsheet-style monthly grid, see
+your streaks and completion rate on a dashboard, and keep everything in sync
+across your phone and the web — even without an internet connection.
 
-1. Install dependencies
+This is a personal project built end-to-end (mobile app, backend schema,
+sync engine, and deployment) as a portfolio piece demonstrating local-first
+architecture, real-time sync, and cross-platform React Native development.
 
-   ```bash
-   npm install
-   ```
+## Try it
 
-2. Start the app
+**Live demo (web):** [habit-tracker-demo.vercel.app](https://habit-tracker-demo.vercel.app)
 
-   ```bash
-   npx expo start
-   ```
+**Login credentials:**
 
-In the output, you'll find options to open the app in a
+| Email | Password |
+|---|---|
+| `demo@habittracker.app` | `Demo2026!` |
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+A few things to know before you click around:
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **Demo data resets every 6 hours**, via a scheduled Postgres job
+  (`pg_cron`). Whatever topics or check-ins you add or delete will be wiped
+  back to a clean sample state.
+- **The demo account is capped** at a small number of active topics, purely
+  to keep a shared public demo from growing unbounded.
+- **Try it from two tabs (or your phone) at once** — check off a day on one
+  device and watch it update on the other within a second, over Supabase
+  Realtime.
+- **Offline mode only applies to the mobile app**, not this web demo. The
+  web client always talks to Supabase directly; the mobile app has a full
+  local SQLite copy of your data and works with no connection at all,
+  syncing automatically once you're back online.
 
-## Get a fresh project
+## Tech stack
 
-When you're ready, run:
+| Layer | Technology |
+|---|---|
+| Mobile / frontend | React Native + Expo (SDK 54), TypeScript |
+| Navigation | Expo Router (file-based) |
+| Styling | NativeWind (Tailwind CSS for React Native) |
+| Local database | SQLite (`expo-sqlite`) — mobile only, local-first source of truth |
+| Backend | Supabase (PostgreSQL, Auth, Row Level Security) |
+| Real-time sync | Supabase Realtime (WebSockets) |
+| Scheduled jobs | `pg_cron` (automatic demo data reset) |
+| Sync engine | Custom bidirectional sync, last-write-wins conflict resolution |
+| Package manager | pnpm |
+| Deployment (web) | Vercel |
+| Deployment (mobile, planned) | EAS (Expo Application Services) |
 
-```bash
-npm run reset-project
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Mobile
+        SQLite[("SQLite\nlocal-first")]
+        RN["React Native app"]
+    end
+
+    subgraph Web
+        WebApp["Web client\n(Expo web export)"]
+    end
+
+    subgraph Supabase
+        PG[("PostgreSQL")]
+        RT["Realtime\n(WebSockets)"]
+        Cron["pg_cron\n(demo reset, every 6h)"]
+    end
+
+    RN -- "reads/writes instantly" --> SQLite
+    SQLite -- "bidirectional sync\n(push/pull)" --> PG
+    WebApp -- "reads/writes directly" --> PG
+    PG -- "pushes row-level changes" --> RT
+    RT -- "granular updates" --> RN
+    RT -- "granular updates" --> WebApp
+    Cron -. "resets demo account" .-> PG
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Key architectural decisions
 
-## Learn more
+- **Local-first on mobile, direct-to-cloud on web.** SQLite only exists on
+  the device, so the data layer is split into platform-specific files
+  (`.native.ts` / `.web.ts`) resolved automatically by Metro, instead of
+  branching with `Platform.OS` checks scattered through the business logic.
+- **Conflict resolution: last-write-wins with dirty-flag protection**, not
+  CRDTs or an operations log. This is a single-user app across a few
+  personal devices — real concurrent edits are rare and low-stakes, so the
+  simpler strategy is the right one, as long as a row with unsynced local
+  changes is never silently overwritten by an incoming sync.
+- **Real-time updates patch state granularly.** Instead of refetching an
+  entire dataset on every Realtime event, each event updates only the
+  affected row in local state (with debouncing to avoid re-render storms
+  when many rows change at once).
+- **Timestamps in UTC, calendar dates in local time.** `updated_at`/
+  `created_at` are always UTC for correct sync comparisons; the `day`
+  column (which habit belongs to which calendar day) is derived from the
+  user's local time, since "did I do this today" is answered by the user's
+  clock, not Greenwich's.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Local setup
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Prerequisites
 
-## Join the community
+- Node 18+ and [pnpm](https://pnpm.io/)
+- A Supabase project (free tier works)
+- Expo Go app on your phone, or an Android/iOS emulator (optional — the web
+  export runs anywhere)
 
-Join our community of developers creating universal apps.
+### 1. Environment variables
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```sh
+cp .env.example .env
+```
+
+Fill in your Supabase project's URL and publishable (anon) key — both are
+found under Project Settings → API in the Supabase dashboard.
+
+### 2. Database schema
+
+The full schema (tables, indexes, Row Level Security policies, and the
+profile-creation trigger) lives in `supabase-setup/`. Run
+`001_schema_setup.sql` in your Supabase project's SQL Editor to set it up.
+It's idempotent — safe to re-run.
+
+### 3. Install and run
+
+```sh
+pnpm install
+pnpm expo start
+```
+
+Press `w` for web, or scan the QR code with Expo Go for mobile.
+
+### 4. Demo account (optional)
+
+To recreate the public demo's seed data and reset schedule, see
+`supabase-setup/002_seed_demo_data.sql` and
+`supabase-setup/003_demo_limits_and_reset.sql`. Both require replacing the
+placeholder UUID with a real `auth.users.id`.
+
+## Known limitations
+
+Called out deliberately, not discovered later:
+
+- **The web client has no offline support.** Local-first (SQLite) only
+  applies to the mobile app. This is a scope decision, not a bug — a web
+  PWA with an offline database is a meaningfully larger undertaking than
+  the mobile equivalent, and mobile offline use was the priority for this
+  project.
+- **Conflict resolution is last-write-wins**, not eventually-consistent
+  CRDTs. Correct and simple for a single user across a few devices; would
+  need to change if this became a multi-user collaborative tool.
+- **No push notifications or reminders yet** — the app is check-in-driven,
+  not notification-driven.
